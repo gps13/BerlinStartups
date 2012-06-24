@@ -9,15 +9,14 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
 <html>
   <head>
     <!--
-    This site was based on the Represent.LA project by:
-    - Alex Benzer
-    - Tara Tiger Brown
-    - Sean Bonner
-    
-    Create a map for your startup community!
-    https://github.com/abenzer/represent-map
+    This site is maintained by Martin Spindler [http://mjays.net].
+    The source lives at [https://github.com/mjays/berlinstartups].
+    This site is based on the Represent.LA [https://github.com/abenzer/represent-map] project
+    by Alex Benzer, Tara Tiger Brown and Sean Bonner and is licensed under CC-BY-SA. 
+
+    All contents remain all rights reserved (c) Martin Spindler.
     -->
-    <title>represent.la - map of the Los Angeles startup community</title>
+    <title>berlinstartups.com - finding substance in the hype</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:700|Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -82,7 +81,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
         var myOptions = {
           zoom: 12,
           minZoom: 10,
-          center: new google.maps.LatLng(34.034453,-118.341293),
+          center: new google.maps.LatLng(52.520833,13.411333),
           mapTypeId: google.maps.MapTypeId.ROADMAP,
           panControl: false,
           streetViewControl: false,
@@ -133,6 +132,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
               case "coworking": $count[coworking]++; break;
               case "investor": $count[investor]++; break;
               case "event": $count[event]++; break;
+              case "hackerspace": $count[hackerspace]++; break;
             }
             $marker_id++;
           }
@@ -324,6 +324,11 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
             <label for="filter_coworking">Coworking <span>(<?=0+$count[coworking]?>)</span></label>
           </li>
           <li>
+            <img class="icon" src="./images/icons/hackerspace.png" alt="" />
+            <input type="checkbox" id="filter_hackerspace" checked="checked" onClick="toggle('hackerspace')">
+            <label for="filter_hackerspace">Hackerspace <span>(<?=0+$count[hackerspace]?>)</span></label>
+          </li>
+          <li>
             <img class="icon" src="./images/icons/investor.png" alt="" />
             <input type="checkbox" id="filter_investor" checked="checked" onClick="toggle('investor')">
             <label for="filter_investor">Investors <span>(<?=0+$count[investor]?>)</span></label>
@@ -339,13 +344,13 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
           <a href="#modal_info" class="btn btn-large" data-toggle="modal">More Info</a>
         </div>
         <div class="blurb">
-          This map was made to connect and promote the Los Angeles tech startup community.
-          Let's put LA on the map!
+          Mapping out the Berlin StartUp scene.
+          Finding the substance in the hype.
         </div>
         <div class="share">
-          <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.represent.la" data-text="Let's put Los Angeles startups on the map:" data-via="representla" data-count="none">Tweet</a>
+          <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.berlinstartups.com" data-text="Putting together the Berlin StartUp ecosystem" data-via="blnstartups" data-count="none">Tweet</a>
           <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-          <div class="fb-like" data-href="http://www.represent.la" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false" data-font="arial"></div>
+          <div class="fb-like" data-href="http://www.berlinstartups.com" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false" data-font="arial"></div>
         </div>
         <div class="blurb">
           <!-- per our license, you may not remove this line -->
@@ -362,11 +367,13 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
           <a href="#modal_add" class="btn btn-large btn-inverse" data-toggle="modal">Add</a>
           <a href="#modal_info" class="btn btn-large" data-toggle="modal">Info</a>
         </div>
+<!--    
         <div class="logo">
           <a href="http://represent.la/">
             <img src="images/logo.png" alt="RepresentLA" />
           </a>
         </div>
+-->
       </div>
     </div>
     
@@ -390,16 +397,15 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
       </div>
       <div class="modal-body">
         <p>
-          We built this map to connect and promote the tech startup community
-          in our beloved Los Angeles. We've seeded the map but we need
-          your help to keep it fresh. If you don't see your company,
-          please <a href="#modal_add" data-toggle="modal" data-dismiss="modal">submit it here</a>.
-          Let's put LA on the map together!
+          Everybody loves Berlin Startups. But most know only a handful.
+          Let's change that and map out the Berlin StartUp scene.
+          We've seeded the map but we need your help to keep it fresh.
+          If you don't see your company, please <a href="#modal_add" data-toggle="modal" data-dismiss="modal">submit it here</a>.
         </p>
         <p>
-          Questions? Feedback? Connect with us: <a href="http://www.twitter.com/representla" target="_blank">@representla</a>
+          Questions? Feedback? Connect with us: <a href="http://www.twitter.com/blnstartups" target="_blank">@blnstartups</a>
         </p>
-        <p>
+ <!--       <p>
           If you want to support the community by linking to this map from your website,
           here are some badges you might like to use. You can also grab the <a href="./images/badges/LA-icon.ai">LA icon AI file</a>.
         </p>
@@ -441,6 +447,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
             <img src="./images/badges/badge6_small.png" alt="">
           </li>
         </ul>
+-->
       </div>
       <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal" style="float: right;">Close</a>
@@ -489,6 +496,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
                   <option value="accelerator">Accelerator</option>
                   <option value="incubator">Incubator</option>
                   <option value="coworking">Coworking</option>
+                  <option value="hackerspace">Hackerspace</option>
                   <option value="investor">VC/Angel</option>
                 </select>
               </div>

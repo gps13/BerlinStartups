@@ -24,7 +24,12 @@ while ($row = @mysql_fetch_assoc($result)) {
     $address = $row["address"];
     $id = $row["id"];
     $request_url = $base_url . "&q=" . urlencode($address);
-    $xml = simplexml_load_file($request_url) or die("url not loading");
+    $ch = curl_init($request_url);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $xml_raw = curl_exec($ch);
+    $xml = simplexml_load_string($xml_raw) or die("url not loading");
+//    $xml = simplexml_load_file($request_url) or die("url not loading");
 
     $status = $xml->Response->Status->code;
     if (strcmp($status, "200") == 0) {
