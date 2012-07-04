@@ -2,7 +2,7 @@
 include "header.php";
 
 // get places
-$places = mysql_query("SELECT * FROM places WHERE approved='1'");
+$places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
 ?>
 
 <!DOCTYPE html>
@@ -240,6 +240,15 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
         
       } 
       
+      
+      // zoom to specific marker
+      function goToMarker(marker_id) {
+        if(marker_id) {
+          map.panTo(gmarkers[marker_id].getPosition());
+          map.setZoom(15);
+          google.maps.event.trigger(gmarkers[marker_id], 'click');
+        }
+      }
 
       // toggle (hide/show) markers of a given type
       function toggle(type) {
@@ -255,6 +264,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
         for (var i=0; i<gmarkers.length; i++) {
           if (gmarkers[i].type == type) {
             gmarkers[i].setVisible(false);
+            $(".list ."+type).css("display", "none");
           }
         }
       }
@@ -264,14 +274,34 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
         for (var i=0; i<gmarkers.length; i++) {
           if (gmarkers[i].type == type) {
             gmarkers[i].setVisible(true);
+            $(".list ."+type).css("display", "block");
           }
         }
       }
       
-      // submit search
-       $('#search').change(function() {
-         alert('hi');
-       });
+      // toggle collapsible list
+      function toggleList() {
+        if($(".list").css("display") == "none") {
+          $(".list").css("display", "block"); 
+          $(".menu").addClass("expanded");
+          $("#list-toggle-button").html("Close List &#187;");
+          $("#list-toggle-button").blur();
+          $(".share").css("display", "block"); 
+        } else {
+          $(".list").css("display", "none"); 
+          $(".menu").removeClass("expanded");
+          $("#list-toggle-button").html("&#171; Open List");
+          $("#list-toggle-button").blur();
+        }
+      }
+      
+      // hover on list item
+      function markerListMouseOver(marker_id) {
+        $("#marker"+marker_id).css("display", "inline");
+      }
+      function markerListMouseOut(marker_id) {
+        $("#marker"+marker_id).css("display", "none");
+      }
        
        
       google.maps.event.addDomListener(window, 'load', initialize);
@@ -297,11 +327,11 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
     <!-- main menu bar -->
     <div class="menu">
       <div class="wrapper">
-        <div class="logo">
+<!--        <div class="logo">
           <a href="./">
             <img src="images/logo.png" alt="" />
           </a>
-        </div>
+        </div>  -->
         <ul class="filters">
           <li>
             <img class="icon" src="./images/icons/startup.png" alt="" />
@@ -341,14 +371,17 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
           <a href="#modal_add" class="btn btn-large btn-inverse" data-toggle="modal">Add Something!</a>
         </div>
         <div class="info">
-          <a href="#modal_info" class="btn btn-large" data-toggle="modal">More Info</a>
+          <a href="#modal_info" class="btn btn-large btn-info" data-toggle="modal">More Info</a>
+        </div>
+        <div class="list-toggle">
+          <a href="#" class="btn btn-large" id="list-toggle-button" onClick="toggleList()">&#171; Open List</a>
         </div>
         <div class="blurb">
           Mapping out the Berlin StartUp scene.
           Finding the substance in the hype.
         </div>
         <div class="share">
-          <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.berlinstartups.com" data-text="Putting together the Berlin StartUp ecosystem" data-via="blnstartups" data-count="none">Tweet</a>
+          <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.berlinstartups.com" data-text="Putting together the Berlin StartUp ecosystem:" data-via="blnstartups" data-count="none">Tweet</a>
           <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
           <div class="fb-like" data-href="http://www.berlinstartups.com" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false" data-font="arial"></div>
         </div>
@@ -356,6 +389,26 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
           <!-- per our license, you may not remove this line -->
           <?=$attribution?>
         </div>
+      </div>
+    </div>
+    
+    <!-- collapsible marker list -->
+    <div class="list">
+      <div class="wrapper">
+        <ul class="list-items">
+          <?php
+          $marker_id = 0;
+          $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
+          while($place = mysql_fetch_assoc($places)) {
+            echo "
+              <li class='".$place[type]."'>
+                <a href='#' onMouseOver=\"markerListMouseOver('".$marker_id."')\" onMouseOut=\"markerListMouseOut('".$marker_id."')\" onClick=\"goToMarker('".$marker_id."');\">".$place[title]."</a>
+              </li>
+            ";
+            $marker_id++;
+          }
+          ?>
+        </ul>
       </div>
     </div>
     
@@ -574,7 +627,5 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1'");
         );
       });
     </script>
-    
-    
   </body>
 </html>
