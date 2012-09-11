@@ -1,19 +1,18 @@
 <?php
 include "header.php";
 
-
 ?>
 
 <!DOCTYPE html>
 <html>
   <head>
-    <!--
+   <!--
     This site is maintained by Martin Spindler [http://mjays.net].
     The source lives at [https://github.com/mjays/berlinstartups].
     This site is based on the Represent.LA [https://github.com/abenzer/represent-map] project
     by Alex Benzer, Tara Tiger Brown and Sean Bonner and is licensed under CC-BY-SA. 
     -->
-    <title>berlinstartups.com - finding substance in the hype</title>
+    <title>BerlinStartups.com - Finding the Substance in the hype around Berlin Startups by mapping it.</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:700|Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -130,7 +129,7 @@ include "header.php";
         // set map options
         var myOptions = {
           zoom: 12,
-          minZoom: 10,
+          //minZoom: 10,
           center: new google.maps.LatLng(52.520833,13.411333),
           mapTypeId: google.maps.MapTypeId.ROADMAP,
           panControl: false,
@@ -172,6 +171,7 @@ include "header.php";
               Array('investor', 'Investors'),
               Array('service', 'Consulting'),
               Array('event', 'Events'),
+              Array('hackerspace', 'Hackerpaces'),
               );
           $marker_id = 0;
           foreach($types as $type) {
@@ -329,10 +329,9 @@ include "header.php";
 
       // hide all markers of a given type
       function hide(type) {
-        for (var i=0; i<gmarkers.length; i++) {
+        for (var i=0; i < gmarkers.length; i++) {
           if (gmarkers[i].type == type) {
             gmarkers[i].setVisible(false);
-            $(".list ."+type).css("display", "none");
           }
         }
         $("#filter_"+type).addClass("inactive");
@@ -343,18 +342,15 @@ include "header.php";
         for (var i=0; i<gmarkers.length; i++) {
           if (gmarkers[i].type == type) {
             gmarkers[i].setVisible(true);
-            $(".list ."+type).css("display", "block");
           }
         }
         $("#filter_"+type).removeClass("inactive");
       }
       
-
       // toggle (hide/show) marker list of a given type
       function toggleList(type) {
         $("#list .list-"+type).toggle();
       }
-
 
 
       // hover on list item
@@ -364,7 +360,6 @@ include "header.php";
       function markerListMouseOut(marker_id) {
         $("#marker"+marker_id).css("display", "none");
       }
-
 
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
@@ -389,11 +384,11 @@ include "header.php";
     <!-- main menu bar -->
     <div class="menu" id="menu">
       <div class="wrapper">
-<!--        <div class="logo">
+<!--         <div class="logo">
           <a href="./">
             <img src="images/logo.png" alt="" />
           </a>
-        </div>
+        </div> -->
         <div class="blurb">
           Mapping out the Berlin StartUp scene.
           Finding the substance in the hype.
@@ -423,7 +418,8 @@ include "header.php";
               Array('incubator', 'Incubators'), 
               Array('coworking', 'Coworking'), 
               Array('investor', 'Investors'),
-              Array('service', 'Consulting')
+              Array('service', 'Consulting'),
+              Array('hackerspace', 'Hackerpaces')
               );
           if($show_events == true) {
             $types[] = Array('event', 'Events'); 
@@ -461,26 +457,6 @@ include "header.php";
       </ul>
     </div>
     
-    <!-- collapsible marker list -->
-    <div class="list">
-      <div class="wrapper">
-        <ul class="list-items">
-          <?php
-          $marker_id = 0;
-          $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
-          while($place = mysql_fetch_assoc($places)) {
-            echo "
-              <li class='".$place[type]."'>
-                <a href='#' onMouseOver=\"markerListMouseOver('".$marker_id."')\" onMouseOut=\"markerListMouseOut('".$marker_id."')\" onClick=\"goToMarker('".$marker_id."');\">".$place[title]."</a>
-              </li>
-            ";
-            $marker_id++;
-          }
-          ?>
-        </ul>
-      </div>
-    </div>
-    
     
     <!-- main menu bar (mobile) -->
     <div class="menu_mobile">
@@ -489,13 +465,11 @@ include "header.php";
           <a href="#modal_add" class="btn btn-large btn-inverse" data-toggle="modal">Add</a>
           <a href="#modal_info" class="btn btn-large" data-toggle="modal">Info</a>
         </div>
-<!--    
         <div class="logo">
           <a href="http://represent.la/">
             <img src="images/logo.png" alt="RepresentLA" />
           </a>
         </div>
--->
       </div>
     </div>
     
@@ -516,8 +490,8 @@ include "header.php";
         <p>
           Questions? Feedback? Connect with us: <a href="http://www.twitter.com/blnstartups" target="_blank">@blnstartups</a>
         </p>
- <!--       <p>
-          If you want to support the community by linking to this map from your website,
+<!--         <p>
+          If you want to support the LA community by linking to this map from your website,
           here are some badges you might like to use. You can also grab the <a href="./images/badges/LA-icon.ai">LA icon AI file</a>.
         </p>
         <ul class="badges">
@@ -534,7 +508,11 @@ include "header.php";
             <img src="./images/badges/badge2_small.png" alt="">
           </li>
         </ul>
--->
+        <p>
+          This map was built with <a href="https://github.com/abenzer/represent-map">RepresentMap</a> - an open source project we started
+          to help startup communities around the world create their own maps. 
+          Check out some <a target="_blank" href="http://www.represent.la/and-other-cities">startup maps</a> built by other communities!
+        </p> -->
       </div>
       <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal" style="float: right;">Close</a>
@@ -582,7 +560,6 @@ include "header.php";
                   <option value="accelerator">Accelerator</option>
                   <option value="incubator">Incubator</option>
                   <option value="coworking">Coworking</option>
-                  <option value="hackerspace">Hackerspace</option>
                   <option value="investor">VC/Angel</option>
                   <option value="service">Consulting Firm</option>
                 </select>
@@ -661,5 +638,7 @@ include "header.php";
         );
       });
     </script>
+    
+    
   </body>
 </html>
