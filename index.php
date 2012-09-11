@@ -1,8 +1,7 @@
 <?php
 include "header.php";
 
-// get places
-$places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
+
 ?>
 
 <!DOCTYPE html>
@@ -13,8 +12,6 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
     The source lives at [https://github.com/mjays/berlinstartups].
     This site is based on the Represent.LA [https://github.com/abenzer/represent-map] project
     by Alex Benzer, Tara Tiger Brown and Sean Bonner and is licensed under CC-BY-SA. 
-
-    All contents remain all rights reserved (c) Martin Spindler.
     -->
     <title>berlinstartups.com - finding substance in the hype</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -22,7 +19,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
     <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:700|Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link href="./bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
     <link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="map.css" type="text/css" />
+    <link rel="stylesheet" href="map.css?nocache=289671982568" type="text/css" />
     <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="mobile.css" type="text/css" />
     <script src="./scripts/jquery-1.7.1.js" type="text/javascript" charset="utf-8"></script>
     <script src="./bootstrap/js/bootstrap.js" type="text/javascript" charset="utf-8"></script>
@@ -51,28 +48,81 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
           zoomControl = false;
         }
       }); 
+      
+
+      // resize marker list onload/resize
+      $(document).ready(function(){
+        newHeight = $('html').height() - $('#menu > .wrapper').height();
+        $('#list').css('height', newHeight + "px"); 
+      });
+      $(window).resize(function() {
+        resizeList();
+      });
+      
+      // resize marker list to fit window
+      function resizeList() {
+        newHeight = $('html').height() - $('#menu > .wrapper').height();
+        $('#list').css('height', newHeight + "px"); 
+      }
 
 
+      // initialize map
       function initialize() {
         // set map styles
         var mapStyles = [
-          {
-            featureType: "administrative.land_parcel",
+         {
+            featureType: "road",
+            elementType: "geometry",
             stylers: [
-              { visibility: "off" }
+              { hue: "#8800ff" },
+              { lightness: 100 }
+            ]
+          },{
+            featureType: "road",
+            stylers: [
+              { visibility: "on" },
+              { hue: "#91ff00" },
+              { saturation: -62 },
+              { gamma: 1.98 },
+              { lightness: 45 }
             ]
           },{
             featureType: "water",
             stylers: [
-              { visibility: "on" },
-              { saturation: 31 },
-              { lightness: 39 }
+              { hue: "#005eff" },
+              { gamma: 0.72 },
+              { lightness: 42 }
             ]
           },{
-            featureType: "road.highway",
+            featureType: "transit.line",
             stylers: [
-              { visibility: "simplified" },
-              { lightness: 18 }
+              { visibility: "off" }
+            ]
+          },{
+            featureType: "administrative.locality",
+            stylers: [
+              { visibility: "on" }
+            ]
+          },{
+            featureType: "administrative.neighborhood",
+            elementType: "geometry",
+            stylers: [
+              { visibility: "simplified" }
+            ]
+          },{
+            featureType: "landscape",
+            stylers: [
+              { visibility: "on" },
+              { gamma: 0.41 },
+              { lightness: 46 }
+            ]
+          },{
+            featureType: "administrative.neighborhood",
+            elementType: "labels.text",
+            stylers: [
+              { visibility: "on" },
+              { saturation: 33 },
+              { lightness: 20 }
             ]
           }
         ];
@@ -114,33 +164,52 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
         // markers array: name, type (icon), lat, long, description, uri, address
         markers = new Array();
         <?php
+          $types = Array(
+              Array('startup', 'Startups'),
+              Array('accelerator','Accelerators'),
+              Array('incubator', 'Incubators'), 
+              Array('coworking', 'Coworking'), 
+              Array('investor', 'Investors'),
+              Array('service', 'Consulting'),
+              Array('event', 'Events'),
+              );
           $marker_id = 0;
-          while($place = mysql_fetch_assoc($places)) {
-            $place[title] = htmlspecialchars_decode(addslashes(htmlspecialchars($place[title])));
-            $place[description] = htmlspecialchars_decode(addslashes(htmlspecialchars($place[description])));
-            $place[uri] = addslashes(htmlspecialchars($place[uri]));
-            $place[address] = htmlspecialchars_decode(addslashes(htmlspecialchars($place[address])));
-            echo "
-              markers.push(['".$place[title]."', '".$place[type]."', '".$place[lat]."', '".$place[lng]."', '".$place[description]."', '".$place[uri]."', '".$place[address]."']); 
-              //markerTitles.push([{id: '".$marker_id."', title: '".$place[title]."'}]);
-              markerTitles[".$marker_id."] = '".$place[title]."';
-            "; 
-            switch($place[type]) {
-              case "startup": $count[startup]++; break;
-              case "incubator": $count[incubator]++; break;
-              case "accelerator": $count[accelerator]++; break;
-              case "coworking": $count[coworking]++; break;
-              case "investor": $count[investor]++; break;
-              case "event": $count[event]++; break;
-              case "hackerspace": $count[hackerspace]++; break;
+          foreach($types as $type) {
+            $places = mysql_query("SELECT * FROM places WHERE approved='1' AND type='$type[0]' ORDER BY title");
+            $places_total = mysql_num_rows($places);
+            while($place = mysql_fetch_assoc($places)) {
+              $place[title] = htmlspecialchars_decode(addslashes(htmlspecialchars($place[title])));
+              $place[description] = htmlspecialchars_decode(addslashes(htmlspecialchars($place[description])));
+              $place[uri] = addslashes(htmlspecialchars($place[uri]));
+              $place[address] = htmlspecialchars_decode(addslashes(htmlspecialchars($place[address])));
+              echo "
+                markers.push(['".$place[title]."', '".$place[type]."', '".$place[lat]."', '".$place[lng]."', '".$place[description]."', '".$place[uri]."', '".$place[address]."']); 
+                markerTitles[".$marker_id."] = '".$place[title]."';
+              "; 
+              $count[$place[type]]++;
+              $marker_id++;
             }
-            $marker_id++;
           }
+          if($show_events = true) {
+            $place[type] = "event";
+            $events = mysql_query("SELECT * FROM events WHERE start_date < ".(time()+4838400)." ORDER BY id DESC");
+            $events_total = mysql_num_rows($events);
+            while($event = mysql_fetch_assoc($events)) {
+              $event[title] = htmlspecialchars_decode(addslashes(htmlspecialchars($event[title])));
+              $event[description] = htmlspecialchars_decode(addslashes(htmlspecialchars($event[description])));
+              $event[uri] = addslashes(htmlspecialchars($event[uri]));
+              $event[address] = htmlspecialchars_decode(addslashes(htmlspecialchars($event[address])));
+              $event[start_date] = date("D, M j @ g:ia", $event[start_date]);
+              echo "
+                markers.push(['".$event[title]."', 'event', '".$event[lat]."', '".$event[lng]."', '".$event[start_date]."', '".$event[uri]."', '".$event[address]."']); 
+                markerTitles[".$marker_id."] = '".$event[title]."';
+              "; 
+              $count[$place[type]]++;
+              $marker_id++;
+            }
+          }
+
         ?>
-            
-
-
-        
 
         // add markers
         jQuery.each(markers, function(i, val) {
@@ -222,8 +291,8 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
           label.bindTo('clickable', marker);
           label.bindTo('zIndex', marker);
         });
-        
-        
+
+
         // zoom to marker if selected in search typeahead list
         $('#search').typeahead({
           source: markerTitles, 
@@ -237,10 +306,9 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
             $("#search").val("");
           }
         });
-        
       } 
-      
-      
+
+
       // zoom to specific marker
       function goToMarker(marker_id) {
         if(marker_id) {
@@ -250,9 +318,9 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
         }
       }
 
-      // toggle (hide/show) markers of a given type
+      // toggle (hide/show) markers of a given type (on the map)
       function toggle(type) {
-        if($("#filter_"+type).attr('checked') == "checked") {
+        if($('#filter_'+type).is('.inactive')) {
           show(type); 
         } else {
           hide(type); 
@@ -267,6 +335,7 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
             $(".list ."+type).css("display", "none");
           }
         }
+        $("#filter_"+type).addClass("inactive");
       }
 
       // show all markers of a given type
@@ -277,24 +346,17 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
             $(".list ."+type).css("display", "block");
           }
         }
+        $("#filter_"+type).removeClass("inactive");
       }
       
-      // toggle collapsible list
-      function toggleList() {
-        if($(".list").css("display") == "none") {
-          $(".list").css("display", "block"); 
-          $(".menu").addClass("expanded");
-          $("#list-toggle-button").html("Close List &#187;");
-          $("#list-toggle-button").blur();
-          $(".share").css("display", "block"); 
-        } else {
-          $(".list").css("display", "none"); 
-          $(".menu").removeClass("expanded");
-          $("#list-toggle-button").html("&#171; Open List");
-          $("#list-toggle-button").blur();
-        }
+
+      // toggle (hide/show) marker list of a given type
+      function toggleList(type) {
+        $("#list .list-"+type).toggle();
       }
-      
+
+
+
       // hover on list item
       function markerListMouseOver(marker_id) {
         $("#marker"+marker_id).css("display", "inline");
@@ -302,8 +364,8 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
       function markerListMouseOut(marker_id) {
         $("#marker"+marker_id).css("display", "none");
       }
-       
-       
+
+
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
     
@@ -325,60 +387,20 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
     <div id="map_canvas"></div>
     
     <!-- main menu bar -->
-    <div class="menu">
+    <div class="menu" id="menu">
       <div class="wrapper">
 <!--        <div class="logo">
           <a href="./">
             <img src="images/logo.png" alt="" />
           </a>
-        </div>  -->
-        <ul class="filters">
-          <li>
-            <img class="icon" src="./images/icons/startup.png" alt="" />
-            <input type="checkbox" id="filter_startup" checked="checked" onClick="toggle('startup')">
-            <label for="filter_startup">Startups <span>(<?=0+$count[startup]?>)</span></label>
-          </li>
-          <li>
-            <img class="icon" src="./images/icons/accelerator.png" alt="" />
-            <input type="checkbox" id="filter_accelerator" checked="checked" onClick="toggle('accelerator')">
-            <label for="filter_accelerator">Accelerators <span>(<?=0+$count[accelerator]?>)</span></label>
-          </li>
-          <li>
-            <img class="icon" src="./images/icons/incubator.png" alt="" />
-            <input type="checkbox" id="filter_incubator" checked="checked" onClick="toggle('incubator')">
-            <label for="filter_incubator">Incubators <span>(<?=0+$count[incubator]?>)</span></label>
-          </li>
-          <li>
-            <img class="icon" src="./images/icons/coworking.png" alt="" />
-            <input type="checkbox" id="filter_coworking" checked="checked" onClick="toggle('coworking')">
-            <label for="filter_coworking">Coworking <span>(<?=0+$count[coworking]?>)</span></label>
-          </li>
-          <li>
-            <img class="icon" src="./images/icons/hackerspace.png" alt="" />
-            <input type="checkbox" id="filter_hackerspace" checked="checked" onClick="toggle('hackerspace')">
-            <label for="filter_hackerspace">Hackerspace <span>(<?=0+$count[hackerspace]?>)</span></label>
-          </li>
-          <li>
-            <img class="icon" src="./images/icons/investor.png" alt="" />
-            <input type="checkbox" id="filter_investor" checked="checked" onClick="toggle('investor')">
-            <label for="filter_investor">Investors <span>(<?=0+$count[investor]?>)</span></label>
-          </li>
-        </ul>
-        <div class="search">
-          <input type="text" name="search" id="search" placeholder="Search" data-provide="typeahead" autocomplete="off" />
-        </div>
-        <div class="add">
-          <a href="#modal_add" class="btn btn-large btn-inverse" data-toggle="modal">Add Something!</a>
-        </div>
-        <div class="info">
-          <a href="#modal_info" class="btn btn-large btn-info" data-toggle="modal">More Info</a>
-        </div>
-        <div class="list-toggle">
-          <a href="#" class="btn btn-large" id="list-toggle-button" onClick="toggleList()">&#171; Open List</a>
         </div>
         <div class="blurb">
           Mapping out the Berlin StartUp scene.
           Finding the substance in the hype.
+        </div>
+        <div class="buttons">
+          <a href="#modal_info" class="btn btn-large btn-info" data-toggle="modal">More Info</a>
+          <a href="#modal_add" class="btn btn-large btn-inverse" data-toggle="modal">Add Something!</a>
         </div>
         <div class="share">
           <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.berlinstartups.com" data-text="Putting together the Berlin StartUp ecosystem:" data-via="blnstartups" data-count="none">Tweet</a>
@@ -389,7 +411,54 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
           <!-- per our license, you may not remove this line -->
           <?=$attribution?>
         </div>
+        <div class="search">
+          <input type="text" name="search" id="search" placeholder="Type a company name..." data-provide="typeahead" autocomplete="off" />
+        </div>
       </div>
+      <ul class="list" id="list">
+        <?php
+          $types = Array(
+              Array('startup', 'Startups'),
+              Array('accelerator','Accelerators'),
+              Array('incubator', 'Incubators'), 
+              Array('coworking', 'Coworking'), 
+              Array('investor', 'Investors'),
+              Array('service', 'Consulting')
+              );
+          if($show_events == true) {
+            $types[] = Array('event', 'Events'); 
+          }
+          $marker_id = 0;
+          foreach($types as $type) {
+            if($type[0] != "event") {
+              $markers = mysql_query("SELECT * FROM places WHERE approved='1' AND type='$type[0]' ORDER BY title");
+            } else {
+              $markers = mysql_query("SELECT * FROM events WHERE start_date < ".(time()+4838400)." ORDER BY id DESC");
+            }
+            $markers_total = mysql_num_rows($markers);
+            echo "
+              <li class='category'>
+                <div class='category_item'>
+                  <div class='category_toggle' onClick=\"toggle('$type[0]')\" id='filter_$type[0]'></div>
+                  <a href='#' onClick=\"toggleList('$type[0]');\" class='category_info'><img src='./images/icons/$type[0].png' alt='' />$type[1]<span class='total'> ($markers_total)</span></a>
+                </div>
+                <ul class='list-items list-$type[0]'>
+            ";
+            while($marker = mysql_fetch_assoc($markers)) {
+              echo "
+                  <li class='".$marker[type]."'>
+                    <a href='#' onMouseOver=\"markerListMouseOver('".$marker_id."')\" onMouseOut=\"markerListMouseOut('".$marker_id."')\" onClick=\"goToMarker('".$marker_id."');\">".$marker[title]."</a>
+                  </li>
+              ";
+              $marker_id++;
+            }
+            echo "
+                </li>
+              </ul>
+            ";
+          }
+        ?>
+      </ul>
     </div>
     
     <!-- collapsible marker list -->
@@ -430,17 +499,6 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
       </div>
     </div>
     
-    <!-- more info modal -->
-    <div class="modal hide" id="modal_info_mobile">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
-        <h3>About This Map</h3>
-      </div>
-      <div class="modal-body">
-        hey there
-      </div>
-    </div>
-    
     
     <!-- more info modal -->
     <div class="modal hide" id="modal_info">
@@ -475,30 +533,6 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
           <li>
             <img src="./images/badges/badge2_small.png" alt="">
           </li>
-          <li>
-            <img src="./images/badges/badge3.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge3_small.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge4.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge4_small.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge5.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge5_small.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge6.png" alt="">
-          </li>
-          <li>
-            <img src="./images/badges/badge6_small.png" alt="">
-          </li>
         </ul>
 -->
       </div>
@@ -506,7 +540,6 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
         <a href="#" class="btn" data-dismiss="modal" style="float: right;">Close</a>
       </div>
     </div>
-    
     
     
     <!-- add something modal -->
@@ -551,15 +584,16 @@ $places = mysql_query("SELECT * FROM places WHERE approved='1' ORDER BY title");
                   <option value="coworking">Coworking</option>
                   <option value="hackerspace">Hackerspace</option>
                   <option value="investor">VC/Angel</option>
+                  <option value="service">Consulting Firm</option>
                 </select>
               </div>
             </div>
             <div class="control-group">
-              <label class="control-label" for="add_address">Street Address</label>
+              <label class="control-label" for="add_address">Address</label>
               <div class="controls">
                 <input type="text" class="input-xlarge" name="address" id="add_address">
                 <p class="help-block">
-                  Should be your full street address (including city and zip).
+                  Should be your <b>full street address (including city and zip)</b>.
                   If it works on Google Maps, it will work here.
                 </p>
               </div>
