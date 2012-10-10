@@ -1,5 +1,4 @@
 <?php
-
 include "./include/db.php";
 
 // connect to db
